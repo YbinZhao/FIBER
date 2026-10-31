@@ -166,34 +166,6 @@ Both main functions return `posterior`, `y_pred`, `pi_prior`, `parameters`, and 
 - `mc_seed` makes the IRT Monte Carlo integration reproducible while preserving the caller's prior R random-number generator state.
 - `mc_samples`, `batch_size`, `cov_ridge`, and `score_variance_floor` control numerical approximation and stability.
 
-## Evaluation, thresholds and ROC curves
-
-The implementation provides:
-
-- `eval_with_best_threshold(y_true, p_hat, method = "youden", threshold = NULL)` for AUC and accuracy, precision, recall, specificity, F1, and confusion-matrix counts.
-- `plot_cv_roc_three_methods(...)` for a **three-method** comparison of FIBER, FIBER-Stream, and Fast-DetectGPT. Its posterior inputs are per-fold matrices ordered by the held-out rows of each fold; Fast-DetectGPT is supplied as a full-length score vector.
-
-If `threshold = NULL`, `eval_with_best_threshold()` selects a Youden-optimal cutoff **using the labels supplied to that call**. For ordinary held-out evaluation, select the cutoff on labeled training/validation predictions and pass it unchanged to the test evaluation:
-
-```r
-train_fit <- fiber(
-  s_train = s_train, y_train = y_train,
-  d_train = d_train, z_train = z_train,
-  s_test = s_train, d_test = d_train,
-  theta_det = theta_det
-)
-cutoff <- eval_with_best_threshold(y_train, train_fit$posterior)$result$threshold[1]
-
-heldout_metrics <- eval_with_best_threshold(
-  y_true = y_test,
-  p_hat = fit$posterior,
-  threshold = cutoff
-)$result
-print(heldout_metrics)
-```
-
-Here `y_test` is used **only to compute evaluation metrics**, not to select the cutoff. The documented paper's **OOD evaluation** instead uses *retrospective Youden threshold selection on the labeled OOD test set* for methods with continuous scores, to match its baseline comparison protocol. Those threshold-dependent OOD values are **post-hoc calibrated results**, not a label-free deployment estimate. AUC does not depend on the chosen cutoff. **No standalone OOD evaluation script is currently included in this repository.**
-
 ## Research experiment scripts
 
 ### Multi-domain experiment: `Fiber_multidomain.R`
